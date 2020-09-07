@@ -6,7 +6,7 @@ class ClasseLog(Enum):
     OKBLUE = '\033[94m'
     OKGREEN = '\033[92m'
     WARNING = Fore.BLACK + Back.YELLOW + Style.DIM
-    FAIL = '\033[91m'
+    FAIL = Fore.BLACK + Back.RED + Style.DIM
     ENDC = Style.RESET_ALL
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'

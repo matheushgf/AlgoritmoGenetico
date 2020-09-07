@@ -36,6 +36,18 @@ class RelatorioPopulacao:
             self.totalHomens += 1
         if(recemCriado): self.incrementaRecemCriados()
 
+    def removeIndividuo(self, individuo, eraCasado):
+        self.totalPopulacao -= 1
+        genero = individuo.getGenero()
+        if(genero == 'M'):
+            self.totalMulheres -= 1
+        elif(genero == 'H'):
+            self.totalHomens -= 1
+        if(eraCasado):
+            self.casais -= 1
+            self.solteiros += 1
+        else: self.solteiros -= 1
+        
     def getContHomens(self):
         return self.totalHomens
 

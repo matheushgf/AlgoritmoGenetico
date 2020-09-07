@@ -4,6 +4,7 @@ from model.RelatorioPopulacao import RelatorioPopulacao
 from model.StatusRelacionamento import StatusRelacionamento as statusRel
 from fractions import Fraction
 import random
+import math
 
 class Populacao:
     def criaPopulacaoInicial(self, individuosIniciais):
@@ -15,12 +16,13 @@ class Populacao:
     def __init__(self, individuosIniciais, totalGeracoes):
         self.MINIMO_POPULACAO = 1
         self.MINIMO_GERACOES = 1
-        self.GERAR_DESCENDENTES = ['S', 'N']
-        self.FERTILIDADE_INICIAL = 50
+        self.TAXA_FERTILIDADE = 50
+        self.TEMPO_VIDA = 3
         
         if(isinstance(individuosIniciais, int) and individuosIniciais >= self.MINIMO_POPULACAO and
             isinstance(totalGeracoes, int) and totalGeracoes >= self.MINIMO_GERACOES):
             self.geracaoAtual = 1
+            self.contIndividuosExistiram = 0
             self.relatorio = RelatorioPopulacao(self)
             self.individuos = []
             self.totalGeracoes = totalGeracoes
@@ -38,10 +40,27 @@ class Populacao:
     #Insere o indivíduo tanto na População quanto no contador do Relatório.
     def addIndividuo(self, individuo, recemCriado = False):
         self.individuos.append(individuo)
+        self.contIndividuosExistiram += 1
         self.relatorio.contabilizaIndividuo(individuo, recemCriado)
+
+    def removeIndividuo(self, individuo):
+        #Caso seja casado, destroi o casal e retorna o outro integrante aos solteiros
+        eraCasado = False
+        if(individuo.getStatusRel() == statusRel.CASADO):
+            casal = [c for c in self.getCasais() if individuo in c['integrantes']][0]
+            conjuge = [i for i in casal['integrantes'] if i != individuo][0]
+            eraCasado = True
+            conjuge.setStatusRel(statusRel.SOLTEIRO)
+            self.solteiros.append(conjuge)
+            self.separaCasal(casal)
+        self.relatorio.removeIndividuo(individuo, eraCasado)
+        self.individuos.remove(individuo)
 
     def getContIndividuos(self):
         return self.relatorio.getTotalPopulacao()
+
+    def getContIndividuosExistiram(self):
+        return self.contIndividuosExistiram
 
     def getGeracaoAtual(self):
         return self.geracaoAtual
@@ -52,29 +71,32 @@ class Populacao:
     def getCasais(self):
         return self.casais
 
+    def separaCasal(self, casal):
+        self.casais.remove(casal)
+
     #Passa uma geração
     def iteraGeracoes(self):
-        while(self.getGeracaoAtual() <= self.getTotalGeracoes()):
+        while((self.getGeracaoAtual() <= self.getTotalGeracoes()) and len(self.individuos) > 0):
             self.formaCasais(self.filtraSolteiros(self.getIndividuos()))
+            self.checaTempoVida()
             self.relatorio.fimCicloGeracao(self.getGeracaoAtual(), len(self.getSolteiros()))
             self.relatorio.printRelatorio()
             self.geracaoAtual += 1
             self.relatorio.resetaRecemCriados()
             self.iteraHerdeiros()
+        if(len(self.individuos) == 0): Log.printLog('\n**********População Extinta**********', ClasseLog.FAIL)
 
     def iteraHerdeiros(self):
-        for casal in self.getCasais():
-            ##Cálculo para peso da vontade de ter filho ou não, com peso proporcional
-            fracao = Fraction(casal['fertilidade']/100).limit_denominator()
-            escolhaGeraDesc = random.choices(self.GERAR_DESCENDENTES, weights=[fracao.numerator, fracao.denominator-fracao.numerator], k=1)[0]
-            if escolhaGeraDesc == 'S':
-                #print('Casal ', (casal['integrantes'][0].getId(), casal['integrantes'][1].getId()), ' resolveu ter filho')
-                individuo = Individuo(self, self.getGeracaoAtual(), casal['integrantes'])
-                self.addIndividuo(individuo, True)
-                
-                casal['filhos'] += 1
-                casal['fertilidade'] /= 2
-                
+        ##Cálculo de número de casais que terão descendentes
+        casais = self.getCasais()
+        numeroCasais = math.floor((self.TAXA_FERTILIDADE/100)*len(casais))
+        casais = random.sample(casais, numeroCasais)
+        for casal in casais:
+            #print('Casal ', (casal['integrantes'][0].getId(), casal['integrantes'][1].getId()), ' resolveu ter filho')
+            individuo = Individuo(self, self.getGeracaoAtual(), casal['integrantes'])
+            self.addIndividuo(individuo, True)
+            casal['filhos'] += 1
+            
     def getContHomens(self):
         return self.relatorio.getContHomens()
 
@@ -91,7 +113,7 @@ class Populacao:
         self.solteiros = solteiros
         
     def novoCasal(self, integrantes):
-        self.casais.append({'integrantes': integrantes, 'filhos': 0, 'fertilidade': self.FERTILIDADE_INICIAL})
+        self.casais.append({'integrantes': integrantes, 'filhos': 0})
         self.relatorio.novoCasal()
         for integrante in integrantes:
             integrante.setStatusRel(statusRel.CASADO)
@@ -123,3 +145,8 @@ class Populacao:
                 self.setSolteiros(solteiros)
                 self.relatorio.setSolteiros(len(solteiros))
                 break
+        
+    def checaTempoVida(self):
+        for individuo in [i for i in self.getIndividuos()
+                          if(self.getGeracaoAtual() - i.getGeracao() >= self.TEMPO_VIDA)]:
+            self.removeIndividuo(individuo)
