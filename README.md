@@ -19,13 +19,12 @@ Os arquivo __main__ contidos no projeto são executáveis apenas possuindo o Pyt
 Caso deseje testar e modificar, basta abrir o código com uma IDE e sair usando. Até o momento, nenhuma biblioteca externa foi usada para desenvolvimento do código.
 
 ### **Futuras alterações**
-* Melhoria da probabilidade de gênero ao nascer, que atualmente é aleatória;
-* Aumento de variáveis nas interações entre indivíduos, como idade e morte;
-* Variáveis genéticas simples para visualizar hereditariedade e suportar competição por recursos;
-* Cromossomos e aleatoriedade de mutação
+* Variáveis genéticas simples para visualizar hereditariedade;
+* Cromossomos e aleatoriedade de mutação;
+* Competição por recursos;
 * Adição de competição para simular a _Seleção Natural_ de forma reduzida a poucas variáveis;
-* Utilização de plataforma de _I.A._ para permitir maior complexidade. 
-* Arquivo de configuração de variáveis dinâmicas
-* Diferenciação de espécies de acordo com o grau de diferença com sua população
-* Variáveis de simulação de situações, como falta de comida
-* Teste múltiplo de Populações usando variáveis diferentes
+* Utilização de plataforma de _I.A._ para permitir maior complexidade; 
+* Arquivo de configuração de variáveis dinâmicas;
+* Diferenciação de espécies de acordo com o grau de diferença com sua população;
+* Variáveis de simulação de situações, como falta de comida;
+* Teste múltiplo de Populações usando variáveis diferentes;
